@@ -1,0 +1,15 @@
+{   
+    "people":[ 
+        {"name":"Tomek Kolasa","birthday":"1981-12-27T00:00:00.000","nameday":{"day":29,"month":12}},
+        {"name":"Agnieszka Krawczyk","birthday":"1985-04-15T00:00:00.000","nameday":null},
+        {"name":"Dominik Krawczyk","birthday":"2012-04-25T00:00:00.000","nameday":null}
+    ],
+    "notifications":[
+        {"id":0,"weeks":2,"days":0,"hour":10,"minute":0},
+        {"id":1,"weeks":0,"days":1,"hour":23,"minute":59},
+        {"id":2,"weeks":0,"days":0,"hour":9,"minute":0}
+    ],
+    "app_settings":[
+        {"themeColor":0}
+    ]
+}
