@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/widgets.dart';
+import 'package:urodziny_imieniny/models/app_state.dart';
 import 'package:urodziny_imieniny/models/day_month.dart';
 import 'package:urodziny_imieniny/services/file_managers/json_file_manager.dart';
 import 'package:urodziny_imieniny/services/file_managers/json_validators/people_json_validator.dart';
@@ -11,7 +14,9 @@ class MyAppState extends ChangeNotifier {
 
   MyAppState()
   {
+    // file managers should be added here
     _fileManagers['people'] = PeopleFileManager('people.json', _people, PeopleJsonValidator());
+    
     _initAppStates();
   }
 
@@ -24,21 +29,30 @@ class MyAppState extends ChangeNotifier {
   /// will show user a snackbar at app scaffold
   List<String> userInfoMessages = [];
 
+  /// file managers interacts with files that holds app states
+  /// (eg. file for holding information of people, or file for notificatios, app settings etc.)
+  /// each of these files have it's own file manager
   late Map<String, JsonFileManager> _fileManagers = {};
 
 
-  /// during init the following takes place:
+  /// during file managers init the following takes place:
   /// - create files if not exists
   /// - read each FileManeger file content
-  /// - create ChangeNotifier states from FileManagers [items]
-  Future<void> _initAppStates() async{
+  Future<void> _initFileManagers() async{
     for (var key in _fileManagers.keys) {
       await _fileManagers[key]!.init();
       if(_fileManagers[key]!.fault){
         addUserMessage('błąd stanu aplikacji');
       }
     }
+  }
 
+  /// during app states init the following takes place:
+  /// - _initFileManagers()
+  /// - create ChangeNotifier states from FileManagers [items]
+  /// TODO consider creating ChangeNotifier state as part of file mamanger init
+  Future<void> _initAppStates() async{
+    await _initFileManagers();
     _syncPeopleEvents();
     // if( people.isEmpty ) await seed();
   }
@@ -49,6 +63,8 @@ class MyAppState extends ChangeNotifier {
     if(!_fileManagers['people']!.fault){
       PeopleEvents.create(_peopleEvents, _people);
       notifyListeners();
+    } else {
+      addUserMessage('błąd stanu aplikacji');
     }
   }
 
@@ -142,24 +158,54 @@ class MyAppState extends ChangeNotifier {
       );
   }
 
-  /// delegates save app state backup to JSON file in user selected directory
-  /// TODO app states backup
+  /// each file manager should save it's state to JSON file in user selected directory
+  /// Returns:
+  /// TRUE if all fiels saved successfuly
+  /// TODO: convert this method to a class, it will get more complex
   Future<bool> saveBackup(String dir) async{
-    
-    return await (_fileManagers['people'] as PeopleFileManager).backup(dir);
+
+    bool allBackupFilesSaved = true;
+
+    for (var key in _fileManagers.keys) {
+      if(! (await _fileManagers[key]!.backup(dir))){
+        allBackupFilesSaved = false;
+      }
+    }
+    return allBackupFilesSaved;
   }
 
-  /// read app state backup from user selected JSON file
-  /// and overwrites app state file with read data
-  /// TODO app states backup
+  /// restore JSON file data from backup
+  /// [filePath] fully qualified file name
   Future<bool> restoreBackup(String filePath) async{
-    var isSuccess = await (_fileManagers['people'] as PeopleFileManager).restoreBackup(filePath);
-    if ( isSuccess ) {
-      PeopleEvents.create(_peopleEvents, _people);
-      notifyListeners();
+
+    // which file manager the file belongs to?
+    var managerName = '';
+    List<String> pathElements = filePath.split(Platform.pathSeparator);
+    var filename = pathElements.last;
+
+    for (var key in _fileManagers.keys) {
+      if((_fileManagers[key])!.backupFileName == filename) managerName=key;
+    }
+
+    if(managerName.isEmpty==true){
+      addUserMessage("Wybrany plik jest nieobsługiwany");
       return true;
-    } else {
-      return false;
+    }
+
+    // now we have a manager
+    switch (managerName) { // TODO let file manager restoreBackup() implements not only file, buy realted app state restore!!
+      case 'people':
+         var isSuccess = await (_fileManagers['people'] as PeopleFileManager).restoreBackup(filePath);
+          if ( isSuccess ) {
+            PeopleEvents.create(_peopleEvents, _people);
+            notifyListeners();
+            return true;
+          } else {
+            return false;
+          }
+      default:
+        addUserMessage('plik jest poprawny, ale jeszcze nie obsługiwany');
+        return false;
     }
   }
 

@@ -16,7 +16,6 @@ class MyApp extends StatelessWidget {
 
   final Color themeColor;
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -26,7 +25,6 @@ class MyApp extends StatelessWidget {
 
         locale: Locale('pl', 'PL'),
         supportedLocales: [
-          //const Locale('en', 'US'),
           const Locale('pl', 'PL'),
         ],
         localizationsDelegates: [

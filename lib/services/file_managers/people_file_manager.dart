@@ -76,10 +76,12 @@ class PeopleFileManager extends JsonFileManager<Person>
       final file = File(filePath);
 
       final contents = await file.readAsString();
-      _decodeJsonToItems(contents);
-
-      return OperationResult(isSuccess: true);
-
+      
+      if(_decodeJsonToItems(contents)){
+        return OperationResult(isSuccess: true);
+      } else {
+        return OperationResult(isSuccess: false);
+      }
     } catch (e) {
       return OperationResult(isSuccess: false);
     }
@@ -128,9 +130,10 @@ class PeopleFileManager extends JsonFileManager<Person>
   @override
   Future<bool> restoreBackup(String filePath) async {
 
-    var result = await loadItems(filePath);
+    var loadItemsState = await loadItems(filePath);
+    var saveToStateFile = await saveItems();
 
-    if(result.isSuccess){
+    if(loadItemsState.isSuccess && saveToStateFile.isSuccess){
       return true;
     } else{
       return false;

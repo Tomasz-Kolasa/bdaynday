@@ -34,19 +34,20 @@ abstract class JsonFileManager<T extends JsonSerializeable> implements FileBacku
   /// updates [_items] as per json string
   bool _decodeJsonToItems(String json);
   
-  /// should initialize the file, i.e. create empty one if not exists,
+
   /// read it and set [_items]
   /// NOTE: this method also sets [_isFault]
   Future<void> init() async{
-    if ( await _initFile()){
+    if ( await _initFile()){ 
       var fp = await filePath;
       var result = await loadItems(fp);
-      if(result.isSuccess){
-        _isFault = false;
-      }
+      _isFault = ! result.isSuccess;
+    } else {
+      _isFault = true;
     }
   }
 
+  /// should initialize the file, i.e. create empty one if not exists
   Future<bool> _initFile() async{
     final file = File(await filePath);
 
@@ -66,9 +67,10 @@ abstract class JsonFileManager<T extends JsonSerializeable> implements FileBacku
 
   Future<OperationResult> removeItem(String identifier);
 
-  /// reads from json -> [_items]
+  /// reads from json [_fileName] -> [_items]
   Future<OperationResult> loadItems(String filePath);
 
+  /// save [_items] -> json [_fileName] file
   Future<OperationResult> saveItems();
 
   String _encodeItemsToJsonString(List<T> items){
