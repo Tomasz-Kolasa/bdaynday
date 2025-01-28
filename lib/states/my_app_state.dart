@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/widgets.dart';
+import 'package:urodziny_imieniny/interfaces/file_backupable.dart';
 import 'package:urodziny_imieniny/models/app_state.dart';
 import 'package:urodziny_imieniny/models/day_month.dart';
 import 'package:urodziny_imieniny/services/file_managers/json_file_manager.dart';
@@ -184,7 +185,9 @@ class MyAppState extends ChangeNotifier {
     var filename = pathElements.last;
 
     for (var key in _fileManagers.keys) {
-      if((_fileManagers[key])!.backupFileName == filename) managerName=key;
+      if(_fileManagers[key] is! FileBackupable) continue;
+
+      if(_fileManagers[key]!.backupFileName == filename) managerName=key;
     }
 
     if(managerName.isEmpty==true){
