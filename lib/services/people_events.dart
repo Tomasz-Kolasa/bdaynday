@@ -1,5 +1,5 @@
 import '../models/person.dart';
-import '../models/person_bday_nday.dart';
+import 'package:urodziny_imieniny/models/person_bday_nday.dart';
 import 'event_calculator.dart';
 
 /// This is used to create and update the PersonBdayNday[] (app state variable)

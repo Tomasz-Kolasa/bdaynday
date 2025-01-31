@@ -128,10 +128,17 @@ class PeopleFileManager extends JsonFileManager<Person>
   }
   
   @override
-  Future<bool> restoreBackup(String filePath) async {
+  Future<bool> restoreBackup<T>(String filePath, List<T> personBdayNday) async {
+
+    if(personBdayNday is! List<PersonBdayNday>) throw ArgumentError('List<PersonBdayNday> expected!');
+
+    List<PersonBdayNday> castedList = personBdayNday.cast<PersonBdayNday>();
+
 
     var loadItemsState = await loadItems(filePath);
     var saveToStateFile = await saveItems();
+
+    PeopleEvents.create(castedList, _items);
 
     if(loadItemsState.isSuccess && saveToStateFile.isSuccess){
       return true;

@@ -7,5 +7,8 @@ abstract class FileBackupable{
   Future<bool> backup(String destinationDir);
 
   /// restore backup from given file
-  Future<bool> restoreBackup(String file);
+  /// this method should read file and update associated app state variable
+  /// [file] fully qualified file path to restore
+  /// [associatedAppState] associated AppState list variable
+  Future<bool> restoreBackup<T>(String file, List<T> associatedAppState);
 }

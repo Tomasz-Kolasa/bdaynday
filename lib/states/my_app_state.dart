@@ -2,13 +2,12 @@ import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 import 'package:urodziny_imieniny/interfaces/file_backupable.dart';
-import 'package:urodziny_imieniny/models/app_state.dart';
 import 'package:urodziny_imieniny/models/day_month.dart';
 import 'package:urodziny_imieniny/services/file_managers/json_file_manager.dart';
 import 'package:urodziny_imieniny/services/file_managers/json_validators/people_json_validator.dart';
 import 'package:urodziny_imieniny/types/operation_result.dart';
 import '../models/person.dart';
-import '../models/person_bday_nday.dart';
+import 'package:urodziny_imieniny/models/person_bday_nday.dart';
 import '../services/people_events.dart';
 
 class MyAppState extends ChangeNotifier {
@@ -180,42 +179,29 @@ class MyAppState extends ChangeNotifier {
   Future<bool> restoreBackup(String filePath) async{
 
     // which file manager the file belongs to?
-    var managerName = '';
+    var managerFound = false;
     List<String> pathElements = filePath.split(Platform.pathSeparator);
     var filename = pathElements.last;
 
     for (var key in _fileManagers.keys) {
       if(_fileManagers[key] is! FileBackupable) continue;
 
-      if(_fileManagers[key]!.backupFileName == filename) managerName=key;
+      if(_fileManagers[key]!.backupFileName == filename)
+      {
+
+        var isSuccess = await (_fileManagers[key] as PeopleFileManager).restoreBackup(filePath, _peopleEvents);
+        if ( isSuccess ) {
+          notifyListeners();
+          return true;
+        } else {
+          return false;
+        }
+      }
     }
 
-    if(managerName.isEmpty==true){
+    if(! managerFound){
       addUserMessage("Wybrany plik jest nieobsługiwany");
       return true;
     }
-
-    // now we have a manager
-    switch (managerName) { // TODO let file manager restoreBackup() implements not only file, buy realted app state restore!!
-      case 'people':
-         var isSuccess = await (_fileManagers['people'] as PeopleFileManager).restoreBackup(filePath);
-          if ( isSuccess ) {
-            PeopleEvents.create(_peopleEvents, _people);
-            notifyListeners();
-            return true;
-          } else {
-            return false;
-          }
-      default:
-        addUserMessage('plik jest poprawny, ale jeszcze nie obsługiwany');
-        return false;
-    }
   }
-
-  // Future<void> seed() async
-  // {
-  //   await addPerson(Person(name: 'Tomek Kolasa', birthday: DateTime(1981,12,27), nameday: DayMonth(29,12)));
-  //   await addPerson(Person(name: 'Agnieszka Krawczyk', birthday: DateTime(1985,4,15)));
-  //   await addPerson(Person(name: 'Dominik Krawczyk', birthday: DateTime(2012,4,25)));
-  // }
 }

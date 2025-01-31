@@ -1,6 +1,6 @@
 import 'package:urodziny_imieniny/models/day_month.dart';
 import 'package:urodziny_imieniny/models/person.dart';
-import '../models/person_bday_nday.dart';
+import 'package:urodziny_imieniny/models/person_bday_nday.dart';
 import 'package:urodziny_imieniny/utils/date_time_extenstion.dart';
 
 /// This class is responsible for calculation of:
